@@ -1,24 +1,17 @@
-import pyglet, os, datetime, time
+#!/usr/bin/env python
+import pygame, os, datetime, time
 
-dll_name = os.path.join(os.path.dirname(__file__), 'sources/avbin')
-pyglet.lib.load_library(dll_name)
-sound = 'sources/bell.mp3'
+#dll_name = os.path.join(os.path.dirname(__file__), 'sources/avbin')
+#pyglet.lib.load_library(dll_name)
+sound = 'sources/bell.wav'
 schedule = []
-# belled_schedule = []
 weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+pygame.init()
+pygame.mixer.music.load(sound)
 
 
-def exiter(dt):
-    pyglet.app.exit()
-
-
-# def clean_belled_schedule(fnow):
-#     now_weekday = fnow.weekday()
-#     if not belled_schedule:
-#         return
-#     for i in range(len(schedule)):
-#         if schedule[i][0] != now_weekday:
-#             del schedule[i]
+#def exiter(dt):
+#    pyglet.app.exit()
 
 
 def read_schedule(schedule_file_path='sources/schedule_' + weekdays[datetime.datetime.now().weekday()] + '.txt'):
@@ -27,21 +20,28 @@ def read_schedule(schedule_file_path='sources/schedule_' + weekdays[datetime.dat
     sched = sched.split('\n')
     for i in range(len(sched)):
         sched[i] = sched[i].strip()
-        first = sched[i][:sched[i].index(':')]
-        second = sched[i][sched[i].index(':') + 1:]
-        sched[i] = (first, second)
+        if sched[i]:
+            first = sched[i][:sched[i].index(':')]
+            second = sched[i][sched[i].index(':') + 1:]
+            sched[i] = (first, second)
+        else:
+            del sched[i]
     file.close()
     return sched
 
 
 def play():
-    song = pyglet.media.load(sound, streaming=False)
-    song.play()
-    pyglet.clock.schedule_once(exiter, song.duration)
+#    song = pyglet.media.load(sound, streaming=False)
+#    song.play()
+#    pyglet.clock.schedule_once(exiter, song.duration)
+#    pyglet.app.run()
+    a = pygame.mixer.Sound(sound)
     dnow = datetime.datetime.now()
-    print(f'[{dnow.hour}:{dnow.minute}] The bell is sounding...')
-    # belled_schedule.append((dnow.weekday(), dnow.time().minute))
-    pyglet.app.run()
+    minutes = str(dnow.minute).rjust(2, '0')
+    print(f'[{dnow.hour}:{minutes}] The bell is sounding...')
+    pygame.mixer.music.play(loops=1)
+    time.sleep(a.get_length())
+    pygame.mixer.music.stop()
 
 
 while True:
@@ -49,12 +49,10 @@ while True:
     schedule = read_schedule()
     if now.weekday() != 6:
         time.sleep(3)
-        # clean_belled_schedule(now)
         for el in schedule:
             nowtime = str(now.time())[:2], str(now.time())[3:5]
             if nowtime[1] == el[1] and nowtime[0] == el[0]:
-                # if (now.weekday, now.hour, now.minute) not in belled_schedule:
                 play()
-                time.sleep(61 - now.minute)
+                time.sleep(61 - datetime.datetime.now().second)
     else:
         time.sleep(60)
